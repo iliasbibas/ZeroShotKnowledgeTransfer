@@ -6,19 +6,19 @@ from io import BytesIO  # Python 3.x
 import numpy as np
 import scipy.misc
 import tensorflow as tf
-
+tf.compat.v1.disable_v2_behavior()
 
 class Logger(object):
     def __init__(self, log_dir):
         """Create a summary writer logging to log_dir."""
         self.log_dir = log_dir
-        self.writer = tf.summary.FileWriter(log_dir)
+        self.writer = tf.compat.v1.summary.FileWriter(log_dir)
         self.avg_state = {}
         self.csv_buffer = {}  # for csv log
 
     def scalar_summary(self, tag, value, step):
         """Log a scalar variable."""
-        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
+        summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag, simple_value=value)])
         self.writer.add_summary(summary, step)
 
         self.csv_buffer[tag] = value
@@ -48,22 +48,22 @@ class Logger(object):
                 s = BytesIO()
                 scipy.misc.toimage(img).save(s, format="png")
 
-                img_summary = tf.Summary.Image(encoded_image_string=s.getvalue(),
+                img_summary = tf.compat.v1.Summary.Image(encoded_image_string=s.getvalue(),
                                                height=img.shape[0],
                                                width=img.shape[1])
-                img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_summary))
+                img_summaries.append(tf.compat.v1.Summary.Value(tag='%s/%d' % (tag, i), image=img_summary))
             # Create and write Summary
-            summary = tf.Summary(value=img_summaries)
+            summary = tf.compat.v1.Summary(value=img_summaries)
             self.writer.add_summary(summary, step)
         else:
             s = BytesIO()
             if images.shape[0] == 1: images = images[0]
             scipy.misc.toimage(images).save(s, format="png")
-            img_summary = tf.Summary.Image(encoded_image_string=s.getvalue(),
+            img_summary = tf.compat.v1.Summary.Image(encoded_image_string=s.getvalue(),
                                            height=images.shape[0],
                                            width=images.shape[1])
-            img_summary = [tf.Summary.Value(tag=tag, image=img_summary)]
-            summary = tf.Summary(value=img_summary)
+            img_summary = [tf.compat.v1.Summary.Value(tag=tag, image=img_summary)]
+            summary = tf.compat.v1.Summary(value=img_summary)
             self.writer.add_summary(summary, step)
 
     def histo_summary(self, tag, values, step, bins=1000):
@@ -74,7 +74,7 @@ class Logger(object):
         counts, bin_edges = np.histogram(values, bins=bins)
 
         # Fill the fields of the histogram proto
-        hist = tf.HistogramProto()
+        hist = tf.compat.v1.HistogramProto()
         hist.min = float(np.min(values))
         hist.max = float(np.max(values))
         hist.num = int(np.prod(values.shape))
@@ -91,6 +91,6 @@ class Logger(object):
             hist.bucket.append(c)
 
         # Create and write Summary
-        summary = tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
+        summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag, histo=hist)])
         self.writer.add_summary(summary, step)
         self.writer.flush()
