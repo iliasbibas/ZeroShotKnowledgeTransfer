@@ -19,11 +19,17 @@ class ZeroShotKTSolver(object):
     def __init__(self, args):
         self.args = args
 
-        ## Student and Teacher Nets
-        self.teacher = select_model(dataset=args.dataset,
+        if (args.AT_beta != 0):
+            self.teacher = select_model(dataset=args.dataset,
                                     model_name=args.teacher_architecture,
                                     pretrained=True,
                                     pretrained_models_path=args.pretrained_models_path).to(args.device)
+        else:
+            self.teacher = select_model_ours(dataset=args.dataset,
+                            model_name=args.teacher_architecture,
+                            pretrained=True,
+                            pretrained_models_path=args.pretrained_models_path).to(args.device)
+
         self.student = select_model(dataset=args.dataset,
                                     model_name=args.student_architecture,
                                     pretrained=False,
@@ -76,7 +82,7 @@ class ZeroShotKTSolver(object):
                 f.write("{} \t {}\n".format(k, v))
         print('---------\n')
 
-    def run(self):
+    def run(self, AT_BETA):
 
         running_data_time, running_batch_time = AggregateScalar(), AggregateScalar()
         running_student_maxes_avg, running_teacher_maxes_avg = AggregateScalar(), AggregateScalar()
@@ -93,7 +99,11 @@ class ZeroShotKTSolver(object):
             ## Take n_generator_iter steps on generator
             if idx_pseudo % self.n_repeat_batch < self.args.n_generator_iter:
                 student_logits, *student_activations = self.student(x_pseudo)
-                teacher_logits, *teacher_activations = self.teacher(x_pseudo)
+                if (AT_BETA !=0):
+                    teacher_logits, *teacher_activations = self.teacher(x_pseudo)
+                else:
+                    teacher_logits = self.teacher(x_pseudo)
+                    teacher_activations = None
                 generator_total_loss = self.KT_loss_generator(student_logits, teacher_logits)
 
                 self.optimizer_generator.zero_grad()
@@ -106,7 +116,11 @@ class ZeroShotKTSolver(object):
             elif idx_pseudo % self.n_repeat_batch < (self.args.n_generator_iter + self.args.n_student_iter):
                 if idx_pseudo % self.n_repeat_batch == self.args.n_generator_iter:
                     with torch.no_grad(): #only need to calculate teacher logits once because teacher & x_pseudo fixed
-                        teacher_logits, *teacher_activations = self.teacher(x_pseudo)
+                        if (AT_BETA !=0):
+                            teacher_logits, *teacher_activations = self.teacher(x_pseudo)
+                        else:
+                            teacher_logits = self.teacher(x_pseudo)
+                            teacher_activations = None
 
                 student_logits, *student_activations = self.student(x_pseudo)
                 student_total_loss = self.KT_loss_student(student_logits, student_activations, teacher_logits, teacher_activations)

@@ -20,7 +20,7 @@ def main(args):
             set_torch_seeds(seed)
             args.experiment_name = os.path.join(base_name, base_name+'_seed'+str(seed))
             solver = ZeroShotKTSolver(args)
-            test_acc = solver.run()
+            test_acc = solver.run(args.AT_beta)
             test_accs.append(test_acc)
         mu = np.mean(test_accs)
         sigma = np.std(test_accs)
@@ -31,7 +31,7 @@ def main(args):
     else:
         set_torch_seeds(args.seeds[0])
         solver = ZeroShotKTSolver(args)
-        test_acc = solver.run()
+        test_acc = solver.run(args.AT_beta)
         print('\n\nFINAL TEST ACC RATE: {:02.2f}'.format(test_acc))
         file_name = "final_test_acc_{:02.2f}".format(test_acc)
         with open(os.path.join(args.log_directory_path, args.experiment_name, file_name), 'w+') as f:

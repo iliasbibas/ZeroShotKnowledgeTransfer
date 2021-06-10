@@ -2,6 +2,8 @@ import os
 
 from models.lenet import *
 from models.wresnet import *
+from models.mobilenetv2 import *
+from models.vgg import *
 
 
 def select_model(dataset,
@@ -34,6 +36,25 @@ def select_model(dataset,
 
     return model
 
+def select_model_ours(dataset,
+                 model_name,
+                 pretrained=False,
+                 pretrained_models_path=None):
+
+    if pretrained_models_path == None:
+        raise Exception("Missing pretrained path.")
+
+    if dataset != "CIFAR10":
+        raise NotImplementedError
+
+    if model_name == "MobileNetv2":
+        model = mobilenet_v2(pretrained, path=pretrained_models_path)
+    elif model_name == "vgg11_bn":
+        model = vgg11_bn(pretrained, path=pretrained_models_path)
+    else:
+        raise NotImplementedError
+
+    return model
 
 if __name__ == '__main__':
     import torch
