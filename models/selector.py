@@ -56,6 +56,8 @@ def select_model_ours(dataset,
         model = vgg11_bn(pretrained, path=pretrained_models_path)
     elif model_name == "vgg13_bn":
         model = vgg13_bn(pretrained, path=pretrained_models_path)
+    elif model_name == "vgg19_bn":
+        model = vgg19_bn(pretrained, path=pretrained_models_path)
     elif model_name == "googlenet":
         model = googlenet(pretrained, path=pretrained_models_path)
     elif model_name == "inception":
