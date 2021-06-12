@@ -64,6 +64,8 @@ def select_model_ours(dataset,
         model = inception_v3(pretrained, path=pretrained_models_path)
     elif model_name == "densenet121":
         model = densenet121(pretrained, path=pretrained_models_path)
+    elif model_name == "densenet169":
+        model = densenet169(pretrained, path=pretrained_models_path)
     else:
         raise NotImplementedError
 
